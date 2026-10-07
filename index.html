@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BSI Risk Simulator</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Research prototype: replay stool-microbiome BSI risk forecasts for allo-HCT patients.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="viz-root">
+<header id="topbar">
+  <div class="brand">
+    <div class="title">BSI Risk Simulator</div>
+    <div class="subtitle">E. coli and Enterococcus bloodstream-infection forecasts from stool samples · allo-HCT, MSK · research prototype, not for clinical use</div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="replay" class="tab active">Patient replay</button>
+    <button role="tab" data-tab="ward" class="tab">Ward view</button>
+    <button role="tab" data-tab="about" class="tab">About the models</button>
+  </nav>
+  <div class="controls">
+    <label class="ctl" title="Alert threshold">Alert threshold
+      <select id="sensSelect">
+        <option value="0.75">catch 75% of pre-infection samples</option>
+        <option value="0.80">catch 80%</option>
+        <option value="0.85">catch 85%</option>
+        <option value="0.90" selected>catch 90%</option>
+        <option value="0.95">catch 95%</option>
+      </select>
+    </label>
+    <button id="helpBtn" class="ghost" title="How to use">?</button>
+    <button id="themeBtn" class="ghost" title="Toggle light / dark">◑</button>
+  </div>
+</header>
+<div id="thrNote" class="thr-note"></div>
+
+<main>
+  <!-- ======================= REPLAY ======================= -->
+  <section id="tab-replay" class="tabpane active">
+    <div class="casebar">
+      <label class="ctl">Case
+        <select id="caseSelect"></select>
+      </label>
+      <label class="ctl">or patient code
+        <input id="pidInput" list="pidList" placeholder="e.g. P0001" autocomplete="off">
+        <datalist id="pidList"></datalist>
+      </label>
+      <div class="spacer"></div>
+      <div class="replay-ctl">
+        <button id="firstBtn" class="ghost sm" title="First sample">⇤ Start</button>
+        <button id="prevBtn" class="ghost sm" title="Previous sample">◀</button>
+        <button id="playBtn" class="sm" title="Play">▶ Play</button>
+        <button id="nextBtn" class="ghost sm" title="Next sample">▶</button>
+        <span id="dayLabel" class="daylabel"></span>
+      </div>
+      <button id="revealBtn" class="reveal">Reveal outcome</button>
+    </div>
+
+    <div class="replay-grid">
+      <div class="panel chartpanel">
+        <div id="timeline"></div>
+        <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Sample">
+        <div class="legend" id="compLegend"></div>
+      </div>
+      <aside class="side">
+        <div id="outcomeCard" class="card hidden"></div>
+        <div id="todayCard" class="card"></div>
+        <div id="decisionCard" class="card"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ======================= WARD ======================= -->
+  <section id="tab-ward" class="tabpane">
+    <p class="lede">What the selected alert threshold would have meant across the whole retrospective cohort
+      (every stool sample scored by a model that never saw that patient). Pathogen abundance alone is shown
+      flagging the <em>same number</em> of samples, for a fair comparison.</p>
+    <div id="wardTiles" class="ward-tiles"></div>
+    <div class="ward-charts" id="wardCharts"></div>
+    <div id="wardTable"></div>
+  </section>
+
+  <!-- ======================= ABOUT ======================= -->
+  <section id="tab-about" class="tabpane">
+    <div class="prose" id="aboutText"></div>
+  </section>
+</main>
+
+<div id="tooltip" class="tooltip hidden" role="tooltip"></div>
+
+<div id="helpModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal-card">
+    <h2 id="helpTitle">How to use this simulator</h2>
+    <ol>
+      <li><b>Pick a case.</b> Cases are real, de-identified patients from the MSK allo-HCT cohort. Outcomes are hidden.</li>
+      <li><b>Step through the stay</b> with ▶ (or the slider). Each new stool sample updates two risk scores: the probability of an
+        <span class="ec">E. coli</span> and of an <span class="en">Enterococcus</span> bloodstream infection in the next 14 days.
+        You only see data up to the current day: microbiome composition, antibiotics, neutrophil counts and temperature.</li>
+      <li><b>When a score crosses the alert threshold</b>, the panel on the right shows what drove it and asks what you would do.
+        Your answers stay in this browser; you can download them.</li>
+      <li><b>Reveal the outcome</b> at any point, or keep stepping: once the replay passes an E. coli or Enterococcus infection, the outcome is revealed automatically.</li>
+      <li>The <b>Ward view</b> shows the alert burden and catch rate of the chosen threshold across all patients.</li>
+    </ol>
+    <p class="muted">Retrospective research prototype. Scores were produced by models that never saw the patient being shown
+      (cross-validation), but the alert thresholds were chosen on this same cohort, and the models have not been validated
+      prospectively or at another center.</p>
+    <div class="modal-foot"><button id="helpClose">Start</button></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

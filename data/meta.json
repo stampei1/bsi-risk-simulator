@@ -1,0 +1,220 @@
+{
+ "genera": [
+  {
+   "name": "Enterococcus",
+   "color": "#0D7E2B"
+  },
+  {
+   "name": "Unclassified",
+   "color": "#d9d9d9"
+  },
+  {
+   "name": "Blautia",
+   "color": "#BEA89A"
+  },
+  {
+   "name": "Lachnoclostridium",
+   "color": "#BEA89A"
+  },
+  {
+   "name": "[Ruminococcus] gnavus group",
+   "color": "#BEA89A"
+  },
+  {
+   "name": "Clostridium sensu stricto 1",
+   "color": "#BEA89A"
+  },
+  {
+   "name": "Anaerostipes",
+   "color": "#BEA89A"
+  },
+  {
+   "name": "Sellimonas",
+   "color": "#BEA89A"
+  },
+  {
+   "name": "[Ruminococcus] torques group",
+   "color": "#BEA89A"
+  },
+  {
+   "name": "Akkermansia",
+   "color": "#CA0BE8"
+  },
+  {
+   "name": "Bacteroides",
+   "color": "#1CF8EC"
+  },
+  {
+   "name": "[Clostridium] innocuum group",
+   "color": "#FBA22E"
+  },
+  {
+   "name": "Erysipelatoclostridium",
+   "color": "#FBA22E"
+  },
+  {
+   "name": "Faecalitalea",
+   "color": "#FBA22E"
+  },
+  {
+   "name": "Streptococcus",
+   "color": "#AFCF3C"
+  },
+  {
+   "name": "Staphylococcus",
+   "color": "#F4EE26"
+  },
+  {
+   "name": "Lactobacillus",
+   "color": "#5875DE"
+  },
+  {
+   "name": "Pediococcus",
+   "color": "#5875DE"
+  },
+  {
+   "name": "Lactococcus",
+   "color": "#5875DE"
+  },
+  {
+   "name": "Bifidobacterium",
+   "color": "#D0D0D0"
+  },
+  {
+   "name": "Actinomyces",
+   "color": "#D0D0D0"
+  },
+  {
+   "name": "Veillonella",
+   "color": "#D0D0D0"
+  },
+  {
+   "name": "Escherichia-Shigella",
+   "color": "#EE2C2C"
+  },
+  {
+   "name": "Klebsiella",
+   "color": "#EE2C2C"
+  },
+  {
+   "name": "Ruminococcus 2",
+   "color": "#bdbdbd"
+  },
+  {
+   "name": "Other",
+   "color": "#ececec"
+  }
+ ],
+ "drugs": [
+  {
+   "key": "glycopeptide_antibiotics",
+   "name": "Glycopeptides (vancomycin)"
+  },
+  {
+   "key": "penicillins",
+   "name": "Penicillins"
+  },
+  {
+   "key": "quinolones",
+   "name": "Fluoroquinolones"
+  },
+  {
+   "key": "sulfonamides",
+   "name": "Sulfonamides (TMP-SMX)"
+  },
+  {
+   "key": "cephalosporins",
+   "name": "Cephalosporins"
+  },
+  {
+   "key": "carbapenems",
+   "name": "Carbapenems"
+  },
+  {
+   "key": "macrolide_derivatives",
+   "name": "Macrolides"
+  },
+  {
+   "key": "metronidazole",
+   "name": "Metronidazole"
+  },
+  {
+   "key": "oxazolidinone_antibiotics",
+   "name": "Oxazolidinones (linezolid)"
+  },
+  {
+   "key": "aztreonam",
+   "name": "Aztreonam"
+  },
+  {
+   "key": "aminoglycosides",
+   "name": "Aminoglycosides"
+  },
+  {
+   "key": "lincomycin_derivatives",
+   "name": "Lincosamides"
+  },
+  {
+   "key": "tetracyclines",
+   "name": "Tetracyclines"
+  },
+  {
+   "key": "glycylcyclines",
+   "name": "Glycylcyclines (tigecycline)"
+  },
+  {
+   "key": "leprostatics",
+   "name": "Leprostatics"
+  }
+ ],
+ "groups": {
+  "ecoli": [
+   "E. coli abundance and trend",
+   "Other gut bacteria",
+   "Antibiotics, prior 14 days",
+   "Antibiotic totals",
+   "Days since last antibiotic dose",
+   "Neutrophil count (ANC)",
+   "ANC trend, prior 14 days",
+   "Day relative to transplant"
+  ],
+  "entero": [
+   "Enterococcus abundance and trend",
+   "Lineages containing Enterococcus",
+   "Other bacteria, trends",
+   "Pathogen vs commensal ratios",
+   "Protective commensal indices",
+   "Bacteroides interaction",
+   "Other gut bacteria",
+   "Antibiotics by class",
+   "Antibiotic intensification",
+   "Days since last antibiotic dose",
+   "Antibiotic groups",
+   "Antibiotic \u2192 commensal-loss cascade",
+   "Neutrophil count (ANC)",
+   "Neutropenia \u00d7 Enterococcus",
+   "ANC recovery timing",
+   "Day relative to transplant"
+  ]
+ },
+ "orgs": {
+  "ecoli": {
+   "name": "E. coli",
+   "abundance": "Escherichia ASV_3 + ASV_37",
+   "agents": [
+    "Escherichia"
+   ]
+  },
+  "entero": {
+   "name": "Enterococcus",
+   "abundance": "Enterococcus ASV_2",
+   "agents": [
+    "Enterococcus_Faecium",
+    "Enterococcus_Faecium_Vancomycin_Resistant",
+    "Enterococcus_Vancomycin_Resistant",
+    "Enterococcus_Faecalis"
+   ]
+  }
+ },
+ "horizon_days": 14
+}
