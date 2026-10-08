@@ -6,7 +6,8 @@
 <title>BSI Risk Simulator</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Research prototype: replay stool-microbiome BSI risk forecasts for allo-HCT patients.">
-<link rel="stylesheet" href="style.css">
+<meta name="build" content="20261008142819">
+<link rel="stylesheet" href="style.css?v=20261008142819">
 </head>
 <body class="viz-root">
 <header id="topbar">
@@ -62,10 +63,8 @@
       <button id="randomBtn" class="ghost" title="Open a random patient from the filtered list (blinded)">Random patient</button>
       <div class="spacer"></div>
       <div class="replay-ctl">
-        <button id="firstBtn" class="ghost sm" title="First sample">⇤ Start</button>
-        <button id="prevBtn" class="ghost sm" title="Previous sample">◀</button>
-        <button id="playBtn" class="sm" title="Play">▶ Play</button>
-        <button id="nextBtn" class="ghost sm" title="Next sample">▶</button>
+        <button id="prevBtn" class="sm" title="Previous sample (← key)">◀ Back</button>
+        <button id="nextBtn" class="sm" title="Next sample (→ key)">Next ▶</button>
         <span id="dayLabel" class="daylabel"></span>
       </div>
       <button id="revealBtn" class="reveal">Reveal outcome</button>
@@ -108,7 +107,7 @@
     <h2 id="helpTitle">How to use this simulator</h2>
     <ol>
       <li><b>Pick a case.</b> Cases are real, de-identified patients from the MSK allo-HCT cohort. Outcomes are hidden.</li>
-      <li><b>Step through the stay</b> with ▶ (or the slider). Each new stool sample updates two risk scores: the probability of an
+      <li><b>Step through the stay</b> with the ◀ / ▶ arrows (or the ← / → keys, or the slider). Each new stool sample updates two risk scores: the probability of an
         <span class="ec">E. coli</span> and of an <span class="en">Enterococcus</span> bloodstream infection in the next 14 days.
         You only see data up to the current day: microbiome composition, antibiotics, neutrophil counts and temperature.</li>
       <li><b>When a score crosses the alert threshold</b>, the panel on the right shows what drove it and asks what you would do.
@@ -123,6 +122,6 @@
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=20261008142819"></script>
 </body>
 </html>

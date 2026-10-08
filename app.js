@@ -19,7 +19,7 @@ const CHOICES = ['Continue routine monitoring', 'Repeat stool sample sooner', 'R
 
 const S = {
   meta: null, cohort: null, cases: [], thr: {}, sens: 0.9,
-  pat: null, label: '', category: null, replay: [], cursor: 0, revealed: false, playing: null,
+  pat: null, label: '', category: null, replay: [], cursor: 0, revealed: false, 
   bsiFirst: {}, caseEnd: null,
 };
 const $ = (id) => document.getElementById(id);
@@ -36,7 +36,10 @@ function el(tag, attrs = {}, parent) {
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
 
 // ------------------------------------------------------------------ data
-async function getJSON(u) { const r = await fetch(u); if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); }
+const BUILD = document.querySelector('meta[name="build"]')?.content || '';
+async function getJSON(u) {          // versioned URL: a cached file from an older build is never mixed in
+  const r = await fetch(u + (BUILD ? `?v=${BUILD}` : '')); if (!r.ok) throw new Error(u + ' ' + r.status); return r.json();
+}
 
 async function init() {
   const saved = store('bsi-theme'); if (saved) document.documentElement.setAttribute('data-theme', saved);
@@ -74,8 +77,9 @@ function computeThresholds() {
 
 // ------------------------------------------------------------------ patient
 async function loadPatient(pid, label, category) {
-  stopPlay();
+  const seq = S.loadSeq = (S.loadSeq || 0) + 1;
   const p = await getJSON(`data/patients/${encodeURIComponent(pid)}.json`);
+  if (seq !== S.loadSeq) return;       // a newer selection was made while this one loaded
   S.pat = p; S.label = label || `Patient ${pid}`; S.category = category || null;
   S.bsiFirst = {};
   for (const o of ORGS) {
@@ -143,8 +147,6 @@ function setupUI() {
   $('sensSelect').onchange = (e) => { S.sens = +e.target.value; computeThresholds(); render(); renderWard(); };
   $('prevBtn').onclick = () => step(-1);
   $('nextBtn').onclick = () => step(1);
-  $('firstBtn').onclick = () => { S.cursor = 0; render(); };
-  $('playBtn').onclick = () => (S.playing ? stopPlay() : startPlay());
   $('scrub').oninput = (e) => { S.cursor = +e.target.value; render(); };
   $('revealBtn').onclick = toggleReveal;
   $('themeBtn').onclick = () => {
@@ -170,12 +172,6 @@ function setupUI() {
   renderAbout();
 }
 function step(d) { S.cursor = Math.max(0, Math.min(S.replay.length - 1, S.cursor + d)); render(); }
-function startPlay() {
-  if (S.cursor >= S.replay.length - 1) S.cursor = 0;
-  $('playBtn').textContent = '❚❚ Pause';
-  S.playing = setInterval(() => { if (S.cursor >= S.replay.length - 1) return stopPlay(); step(1); }, 1300);
-}
-function stopPlay() { if (S.playing) clearInterval(S.playing); S.playing = null; $('playBtn').textContent = '▶ Play'; }
 function toggleReveal() {
   if (!S.blindable) return;
   if (!S.revealed && !confirm('Reveal the outcome for this case?')) return;
@@ -189,7 +185,7 @@ function toggleReveal() {
 function render() {
   if (!S.pat) return;
   const cur = S.replay[S.cursor];
-  if (!S.revealed && S.stop != null && cur.day >= S.stop) { S.revealed = true; S.autoRevealed = true; stopPlay(); }
+  if (!S.revealed && S.stop != null && cur.day >= S.stop) { S.revealed = true; S.autoRevealed = true; }
   $('scrub').value = S.cursor;
   $('dayLabel').textContent = `${S.label} · day ${fmtDay(cur.day)} · sample ${S.cursor + 1} of ${S.replay.length}`;
   const rb = $('revealBtn');
