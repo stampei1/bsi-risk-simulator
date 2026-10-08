@@ -1,46 +1,46 @@
 [
  {
-  "pid": "P0195",
+  "pid": "FMT.0085",
   "category": "Enterococcus domination (ASV_2 \u2265 30%) without BSI",
   "label": "Case 1"
  },
  {
-  "pid": "P0211",
+  "pid": "2163",
   "category": "BSI by another organism (Klebsiella / Enterobacter / Pseudomonas): outside both models",
   "label": "Case 2"
  },
  {
-  "pid": "P0622",
+  "pid": "FMT.0183",
   "category": "E. coli BSI, warned early while E. coli abundance was still zero",
   "label": "Case 3"
  },
  {
-  "pid": "P0497",
+  "pid": "FMT.0128",
   "category": "Quiet stay: no alerts, no BSI",
   "label": "Case 4"
  },
  {
-  "pid": "P0266",
+  "pid": "FMT.0106",
   "category": "Enterococcus BSI missed: stool sampled in the 14 days before, no alert",
   "label": "Case 5"
  },
  {
-  "pid": "P0169",
+  "pid": "FMT.0072",
   "category": "E. coli BSI, warned early; E. coli abundance was also high",
   "label": "Case 6"
  },
  {
-  "pid": "P0499",
+  "pid": "546",
   "category": "False alarms: repeated alerts, no E. coli or Enterococcus BSI",
   "label": "Case 7"
  },
  {
-  "pid": "P0951",
+  "pid": "1814",
   "category": "E. coli BSI missed: stool sampled in the 14 days before, no alert",
   "label": "Case 8"
  },
  {
-  "pid": "P0556",
+  "pid": "1986",
   "category": "Enterococcus BSI, warned at least a week ahead",
   "label": "Case 9"
  }

@@ -685,7 +685,7 @@ function renderAbout() {
       i.e. within the window the models predict over. Other infections appear only as faint dotted markers.</li>
   </ul>
   <h2>Data</h2>
-  <p>De-identified MSK allo-HCT data from the Xavier lab (see Schluter et al., <i>Scientific Data</i> 2020). Patients appear under random codes; days are relative to transplant (HCT = day 0).</p>
+  <p>De-identified MSK allo-HCT data from the Xavier lab (see Schluter et al., <i>Scientific Data</i> 2020). Patient IDs are the dataset's de-identified IDs; days are relative to transplant (HCT = day 0).</p>
   <p class="muted">Xavier Lab, MSKCC · research prototype · not for clinical use.</p>`;
 }
 
