@@ -14,8 +14,6 @@ const DRUG_SHORT = { glycopeptide_antibiotics: 'Vancomycin', penicillins: 'Penic
   sulfonamides: 'TMP-SMX', cephalosporins: 'Cephalosporins', carbapenems: 'Carbapenems', macrolide_derivatives: 'Macrolides',
   metronidazole: 'Metronidazole', oxazolidinone_antibiotics: 'Linezolid', aztreonam: 'Aztreonam', aminoglycosides: 'Aminoglycosides',
   lincomycin_derivatives: 'Lincosamides', tetracyclines: 'Tetracyclines', glycylcyclines: 'Tigecycline', leprostatics: 'Leprostatics' };
-const CHOICES = ['Continue routine monitoring', 'Repeat stool sample sooner', 'Review / narrow antibiotics',
-                 'Change prophylaxis', 'Blood cultures / closer watch', 'Other'];
 
 const S = {
   meta: null, cohort: null, cases: [], thr: {}, sens: 0.9,
@@ -94,7 +92,6 @@ async function loadPatient(pid, label, category) {
   S.revealed = !S.blindable;          // every case opens blinded
   S.autoRevealed = false;
   S.cursor = 0;
-  const sc = $('scrub'); sc.max = S.replay.length - 1; sc.value = 0;
   render();
 }
 
@@ -147,7 +144,6 @@ function setupUI() {
   $('sensSelect').onchange = (e) => { S.sens = +e.target.value; computeThresholds(); render(); renderWard(); };
   $('prevBtn').onclick = () => step(-1);
   $('nextBtn').onclick = () => step(1);
-  $('scrub').oninput = (e) => { S.cursor = +e.target.value; render(); };
   $('revealBtn').onclick = toggleReveal;
   $('themeBtn').onclick = () => {
     const cur = document.documentElement.getAttribute('data-theme') ||
@@ -186,14 +182,12 @@ function render() {
   if (!S.pat) return;
   const cur = S.replay[S.cursor];
   if (!S.revealed && S.stop != null && cur.day >= S.stop) { S.revealed = true; S.autoRevealed = true; }
-  $('scrub').value = S.cursor;
   $('dayLabel').textContent = `${S.label} · day ${fmtDay(cur.day)} · sample ${S.cursor + 1} of ${S.replay.length}`;
   const rb = $('revealBtn');
   rb.textContent = S.revealed ? (S.blindable ? 'Hide outcome' : 'Outcome shown') : 'Reveal outcome';
   rb.classList.toggle('done', S.revealed);
   renderTimeline();
   renderToday();
-  renderDecision();
   renderOutcome();
 }
 
@@ -491,48 +485,6 @@ function fmtVal(v, unit) {
   if (v >= 999) return 'none so far';
   if (unit === 'pct') return pct(v, v < 0.01 ? 2 : 1);
   return Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : (+v.toPrecision(3)).toString();
-}
-
-// ------------------------------------------------------------------ decision log
-function decKey() { return `bsi-dec-${S.pat.pid}-${S.replay[S.cursor].day}`; }
-function renderDecision() {
-  const cur = S.replay[S.cursor];
-  const alerts = ORGS.filter(o => cur['p_' + o] != null && cur['p_' + o] >= S.thr[o]);
-  const rec = store(decKey()) || { choices: [], note: '' };
-  const head = alerts.length
-    ? `<h3>⚠ ${alerts.map(o => ORG_NAME[o]).join(' and ')} alert — what would you do?</h3>`
-    : `<h3>Log a decision (optional)</h3><div class="sub">No alert at this sample.</div>`;
-  $('decisionCard').innerHTML = head +
-    `<div class="choices">${CHOICES.map(c => `<button class="choice ${rec.choices.includes(c) ? 'on' : ''}" data-c="${c}">${c}</button>`).join('')}</div>
-     <textarea id="decNote" placeholder="Notes (optional)">${rec.note || ''}</textarea>
-     <div class="row"><span id="decSaved" class="saved grow"></span>
-       <button class="ghost sm" id="decClear" title="Delete all decisions logged in this browser">Clear log</button>
-       <button class="ghost sm" id="decExport" title="Download all logged decisions">Download log</button></div>`;
-  const save = () => {
-    const r = { choices: [...document.querySelectorAll('.choice.on')].map(b => b.dataset.c), note: $('decNote').value,
-      case: S.label, pid: S.pat.pid, day: cur.day, revealed_when_logged: S.revealed,
-      risk: Object.fromEntries(ORGS.map(o => [o, cur['p_' + o]])), alert: alerts, threshold_sens: S.sens, t: new Date().toISOString() };
-    store(decKey(), r); $('decSaved').textContent = 'saved';
-  };
-  document.querySelectorAll('.choice').forEach(b => b.onclick = () => { b.classList.toggle('on'); save(); });
-  $('decNote').oninput = save;
-  $('decExport').onclick = exportLog;
-  $('decClear').onclick = () => {
-    if (!confirm('Delete every decision logged in this browser?')) return;
-    try { Object.keys(localStorage).filter(k => k.startsWith('bsi-dec-')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
-    renderDecision();
-  };
-}
-function exportLog() {
-  const rows = [];
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('bsi-dec-')) rows.push(JSON.parse(localStorage.getItem(k))); } } catch (e) {}
-  const cols = ['case', 'pid', 'day', 'alert', 'risk_ecoli', 'risk_entero', 'choices', 'note', 'revealed_when_logged', 'threshold_sens', 't'];
-  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const csv = [cols.join(',')].concat(rows.map(r => [r.case, r.pid, r.day, (r.alert || []).join(' '), r.risk?.ecoli, r.risk?.entero,
-    (r.choices || []).join('; '), r.note, r.revealed_when_logged, r.threshold_sens, r.t].map(esc).join(','))).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-  a.download = 'bsi_simulator_decisions.csv'; a.click();
 }
 
 // ------------------------------------------------------------------ outcome

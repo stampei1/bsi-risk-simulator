@@ -73,13 +73,11 @@
     <div class="replay-grid">
       <div class="panel chartpanel">
         <div id="timeline"></div>
-        <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Sample">
         <div class="legend" id="compLegend"></div>
       </div>
       <aside class="side">
         <div id="outcomeCard" class="card hidden"></div>
         <div id="todayCard" class="card"></div>
-        <div id="decisionCard" class="card"></div>
       </aside>
     </div>
   </section>
@@ -107,11 +105,10 @@
     <h2 id="helpTitle">How to use this simulator</h2>
     <ol>
       <li><b>Pick a case.</b> Cases are real, de-identified patients from the MSK allo-HCT cohort. Outcomes are hidden.</li>
-      <li><b>Step through the stay</b> with the ◀ / ▶ arrows (or the ← / → keys, or the slider). Each new stool sample updates two risk scores: the probability of an
+      <li><b>Step through the stay</b> with the ◀ / ▶ arrows (or the ← / → keys). Each new stool sample updates two risk scores: the probability of an
         <span class="ec">E. coli</span> and of an <span class="en">Enterococcus</span> bloodstream infection in the next 14 days.
         You only see data up to the current day: microbiome composition, antibiotics, neutrophil counts and temperature.</li>
-      <li><b>When a score crosses the alert threshold</b>, the panel on the right shows what drove it and asks what you would do.
-        Your answers stay in this browser; you can download them.</li>
+      <li><b>When a score crosses the alert threshold</b>, the panel on the right flags it and shows what drove the score.</li>
       <li><b>Reveal the outcome</b> at any point, or keep stepping: once the replay passes an E. coli or Enterococcus infection, the outcome is revealed automatically.</li>
       <li>The <b>Ward view</b> shows the alert burden and catch rate of the chosen threshold across all patients.</li>
     </ol>
