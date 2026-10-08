@@ -6,8 +6,8 @@
 <title>BSI Risk Simulator</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Research prototype: replay stool-microbiome BSI risk forecasts for allo-HCT patients.">
-<meta name="build" content="20261008144232">
-<link rel="stylesheet" href="style.css?v=20261008144232">
+<meta name="build" content="20261008145351">
+<link rel="stylesheet" href="style.css?v=20261008145351">
 </head>
 <body class="viz-root">
 <header id="topbar">
@@ -50,11 +50,11 @@
       <label class="ctl">Browse patients
         <select id="pFilter" title="Filter the patient list and the random button">
           <option value="all">All patients</option>
-          <option value="ecoli">E. coli BSI</option>
-          <option value="entero">Enterococcus BSI</option>
+          <option value="ecoli">E. coli BSI (≤ 14 d after a stool sample)</option>
+          <option value="entero">Enterococcus BSI (≤ 14 d after a stool sample)</option>
           <option value="either">E. coli or Enterococcus BSI</option>
           <option value="both">Both E. coli and Enterococcus BSI</option>
-          <option value="none">No E. coli / Enterococcus BSI</option>
+          <option value="none">No linked E. coli / Enterococcus BSI</option>
         </select>
       </label>
       <label class="ctl"><span id="pListLbl">Patient</span>
@@ -125,6 +125,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20261008144232"></script>
+<script src="app.js?v=20261008145351"></script>
 </body>
 </html>

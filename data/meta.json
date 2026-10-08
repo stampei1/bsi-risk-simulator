@@ -228,64 +228,394 @@
  ],
  "drugs": [
   {
-   "key": "glycopeptide_antibiotics",
-   "name": "Glycopeptides (vancomycin)"
+   "name": "Vancomycin",
+   "cls": "Glycopeptides (vancomycin)",
+   "model": true
   },
   {
-   "key": "penicillins",
-   "name": "Penicillins"
+   "name": "Vancomycin IV",
+   "cls": "Glycopeptides (vancomycin)",
+   "model": true
   },
   {
-   "key": "quinolones",
-   "name": "Fluoroquinolones"
+   "name": "Vancomycin PO",
+   "cls": "Glycopeptides (vancomycin)",
+   "model": true
   },
   {
-   "key": "sulfonamides",
-   "name": "Sulfonamides (TMP-SMX)"
+   "name": "Vancomycin inj",
+   "cls": "Glycopeptides (vancomycin)",
+   "model": true
   },
   {
-   "key": "cephalosporins",
-   "name": "Cephalosporins"
+   "name": "Amoxicillin PO",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "carbapenems",
-   "name": "Carbapenems"
+   "name": "Amoxicillin-clavulanate PO",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "macrolide_derivatives",
-   "name": "Macrolides"
+   "name": "Ampicillin IV",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "metronidazole",
-   "name": "Metronidazole"
+   "name": "Ampicillin-sulbactam IV",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "oxazolidinone_antibiotics",
-   "name": "Oxazolidinones (linezolid)"
+   "name": "Dicloxacillin PO",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "aztreonam",
-   "name": "Aztreonam"
+   "name": "Oxacillin IV",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "aminoglycosides",
-   "name": "Aminoglycosides"
+   "name": "Penicillin IV",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "lincomycin_derivatives",
-   "name": "Lincosamides"
+   "name": "Penicillin PO",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "tetracyclines",
-   "name": "Tetracyclines"
+   "name": "Piperacillin-tazobactam",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "glycylcyclines",
-   "name": "Glycylcyclines (tigecycline)"
+   "name": "Piperacillin-tazobactam IV",
+   "cls": "Penicillins",
+   "model": true
   },
   {
-   "key": "leprostatics",
-   "name": "Leprostatics"
+   "name": "Ticarcillin-clavulanate IV",
+   "cls": "Penicillins",
+   "model": true
+  },
+  {
+   "name": "Ciprofloxacin IV",
+   "cls": "Fluoroquinolones",
+   "model": true
+  },
+  {
+   "name": "Ciprofloxacin PO",
+   "cls": "Fluoroquinolones",
+   "model": true
+  },
+  {
+   "name": "Levofloxacin",
+   "cls": "Fluoroquinolones",
+   "model": true
+  },
+  {
+   "name": "Levofloxacin IV",
+   "cls": "Fluoroquinolones",
+   "model": true
+  },
+  {
+   "name": "Levofloxacin PO",
+   "cls": "Fluoroquinolones",
+   "model": true
+  },
+  {
+   "name": "Sulfadiazine PO",
+   "cls": "Sulfonamides (TMP-SMX)",
+   "model": true
+  },
+  {
+   "name": "TMP-SMX IV",
+   "cls": "Sulfonamides (TMP-SMX)",
+   "model": true
+  },
+  {
+   "name": "TMP-SMX PO",
+   "cls": "Sulfonamides (TMP-SMX)",
+   "model": true
+  },
+  {
+   "name": "Cefadroxil PO",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefazolin",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefazolin IV",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefepime",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefepime IV",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefixime PO",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefotetan IV",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefoxitin IV",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefpodoxime PO",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Ceftaroline IV",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Ceftazidime",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Ceftazidime IV",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Ceftriaxone",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Ceftriaxone IV",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Ceftriaxone inj",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cefuroxime PO",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Cephalexin PO",
+   "cls": "Cephalosporins",
+   "model": true
+  },
+  {
+   "name": "Ertapenem",
+   "cls": "Carbapenems",
+   "model": true
+  },
+  {
+   "name": "Ertapenem IV",
+   "cls": "Carbapenems",
+   "model": true
+  },
+  {
+   "name": "Imipenem-cilastatin IV",
+   "cls": "Carbapenems",
+   "model": true
+  },
+  {
+   "name": "Meropenem IV",
+   "cls": "Carbapenems",
+   "model": true
+  },
+  {
+   "name": "Azithromycin IV",
+   "cls": "Macrolides",
+   "model": true
+  },
+  {
+   "name": "Azithromycin PO",
+   "cls": "Macrolides",
+   "model": true
+  },
+  {
+   "name": "Erythromycin IV",
+   "cls": "Macrolides",
+   "model": true
+  },
+  {
+   "name": "Erythromycin PO",
+   "cls": "Macrolides",
+   "model": true
+  },
+  {
+   "name": "Erythromycin topical",
+   "cls": "Macrolides",
+   "model": true
+  },
+  {
+   "name": "Metronidazole",
+   "cls": "Metronidazole",
+   "model": true
+  },
+  {
+   "name": "Metronidazole IV",
+   "cls": "Metronidazole",
+   "model": true
+  },
+  {
+   "name": "Metronidazole PO",
+   "cls": "Metronidazole",
+   "model": true
+  },
+  {
+   "name": "Metronidazole topical",
+   "cls": "Metronidazole",
+   "model": true
+  },
+  {
+   "name": "Linezolid IV",
+   "cls": "Oxazolidinones (linezolid)",
+   "model": true
+  },
+  {
+   "name": "Linezolid PO",
+   "cls": "Oxazolidinones (linezolid)",
+   "model": true
+  },
+  {
+   "name": "Aztreonam",
+   "cls": "Aztreonam",
+   "model": true
+  },
+  {
+   "name": "Aztreonam IV",
+   "cls": "Aztreonam",
+   "model": true
+  },
+  {
+   "name": "Amikacin IV",
+   "cls": "Aminoglycosides",
+   "model": true
+  },
+  {
+   "name": "Gentamicin IV",
+   "cls": "Aminoglycosides",
+   "model": true
+  },
+  {
+   "name": "Gentamicin inj",
+   "cls": "Aminoglycosides",
+   "model": true
+  },
+  {
+   "name": "Neomycin PO",
+   "cls": "Aminoglycosides",
+   "model": true
+  },
+  {
+   "name": "Paromomycin PO",
+   "cls": "Aminoglycosides",
+   "model": true
+  },
+  {
+   "name": "Clindamycin IV",
+   "cls": "Lincosamides",
+   "model": true
+  },
+  {
+   "name": "Clindamycin PO",
+   "cls": "Lincosamides",
+   "model": true
+  },
+  {
+   "name": "Demeclocycline PO",
+   "cls": "Tetracyclines",
+   "model": true
+  },
+  {
+   "name": "Doxycycline IV",
+   "cls": "Tetracyclines",
+   "model": true
+  },
+  {
+   "name": "Doxycycline PO",
+   "cls": "Tetracyclines",
+   "model": true
+  },
+  {
+   "name": "Doxycycline inj",
+   "cls": "Tetracyclines",
+   "model": true
+  },
+  {
+   "name": "Minocycline PO",
+   "cls": "Tetracyclines",
+   "model": true
+  },
+  {
+   "name": "Tigecycline IV",
+   "cls": "Glycylcyclines (tigecycline)",
+   "model": true
+  },
+  {
+   "name": "Dapsone PO",
+   "cls": "Leprostatics",
+   "model": true
+  },
+  {
+   "name": "Bacitracin",
+   "cls": "not a model input",
+   "model": false
+  },
+  {
+   "name": "Bacitracin topical",
+   "cls": "not a model input",
+   "model": false
+  },
+  {
+   "name": "Daptomycin",
+   "cls": "not a model input",
+   "model": false
+  },
+  {
+   "name": "Daptomycin IV",
+   "cls": "not a model input",
+   "model": false
+  },
+  {
+   "name": "Polymyxin B IV",
+   "cls": "not a model input",
+   "model": false
+  },
+  {
+   "name": "Polymyxin B inj",
+   "cls": "not a model input",
+   "model": false
+  },
+  {
+   "name": "Rifaximin PO",
+   "cls": "not a model input",
+   "model": false
   }
  ],
  "groups": {

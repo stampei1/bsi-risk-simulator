@@ -10,10 +10,6 @@ const H = { risk: 104, comp: 120, lane: 13, anc: 78, temp: 84, axis: 22, gap: 10
 const T_MIN = 96, T_MAX = 104, FEVER = 100.4;
 const RISK_MIN = 0.001, RISK_MAX = 0.6;            // log axis for probabilities
 const ANC_MIN = 0.05, ANC_MAX = 30;
-const DRUG_SHORT = { glycopeptide_antibiotics: 'Vancomycin', penicillins: 'Penicillins', quinolones: 'Fluoroquinolones',
-  sulfonamides: 'TMP-SMX', cephalosporins: 'Cephalosporins', carbapenems: 'Carbapenems', macrolide_derivatives: 'Macrolides',
-  metronidazole: 'Metronidazole', oxazolidinone_antibiotics: 'Linezolid', aztreonam: 'Aztreonam', aminoglycosides: 'Aminoglycosides',
-  lincomycin_derivatives: 'Lincosamides', tetracyclines: 'Tetracyclines', glycylcyclines: 'Tigecycline', leprostatics: 'Leprostatics' };
 
 const S = {
   meta: null, cohort: null, cases: [], thr: {}, sens: 0.9,
@@ -79,13 +75,17 @@ async function loadPatient(pid, label, category) {
   const p = await getJSON(`data/patients/${encodeURIComponent(pid)}.json`);
   if (seq !== S.loadSeq) return;       // a newer selection was made while this one loaded
   S.pat = p; S.label = label || `Patient ${pid}`; S.category = category || null;
-  S.bsiFirst = {};
+  // an infection is "linked" only if a stool sample was taken in the 14 days before it (the model horizon);
+  // unlinked infections are not used to label the timeline
+  S.bsiFirst = {}; S.bsiAny = {};
   for (const o of ORGS) {
-    const ds = p.infections.filter(([, a]) => S.meta.orgs[o].agents.includes(a)).map(([d]) => d);
-    S.bsiFirst[o] = ds.length ? Math.min(...ds) : null;
+    const mine = p.infections.filter(([, a]) => S.meta.orgs[o].agents.includes(a));
+    const all = mine.map(([d]) => d), lk = mine.filter(([, , l]) => l).map(([d]) => d);
+    S.bsiAny[o] = all.length ? Math.min(...all) : null;         // the model stops scoring after this one
+    S.bsiFirst[o] = lk.length ? Math.min(...lk) : null;         // first linked infection
   }
   const firsts = ORGS.map(o => S.bsiFirst[o]).filter(d => d != null);
-  S.stop = firsts.length ? Math.min(...firsts) : null;        // first E. coli / Enterococcus BSI
+  S.stop = firsts.length ? Math.min(...firsts) : null;        // first linked E. coli / Enterococcus BSI
   S.replay = p.samples.slice();                               // every sample, to the last one
   S.blindable = S.stop == null || p.samples[0].day < S.stop;
   S.caseEnd = S.replay[S.replay.length - 1].day;
@@ -120,15 +120,15 @@ function setupUI() {
     loadPatient(pid, c ? c.label : (label || `Patient ${pid}`), c ? c.category : null);
   };
   const FILTERS = {
-    all: () => true, ecoli: (p) => p.bsi.ecoli != null, entero: (p) => p.bsi.entero != null,
-    either: (p) => p.bsi.ecoli != null || p.bsi.entero != null, both: (p) => p.bsi.ecoli != null && p.bsi.entero != null,
-    none: (p) => p.bsi.ecoli == null && p.bsi.entero == null };
+    all: () => true, ecoli: (p) => p.bsiL.ecoli != null, entero: (p) => p.bsiL.entero != null,
+    either: (p) => p.bsiL.ecoli != null || p.bsiL.entero != null, both: (p) => p.bsiL.ecoli != null && p.bsiL.entero != null,
+    none: (p) => p.bsiL.ecoli == null && p.bsiL.entero == null };
   const filtered = () => S.cohort.patients.filter(FILTERS[$('pFilter').value]);
   const fillList = () => {
     const f = $('pFilter').value, pl = $('pList'), ps = filtered();
     pl.replaceChildren(new Option(`— choose (${ps.length}) —`, ''));
     for (const p of ps) {
-      const tags = ORGS.filter(o => p.bsi[o] != null && f !== 'all').map(o => `${ORG_NAME[o]} BSI day ${fmtDay(p.bsi[o])}`);
+      const tags = ORGS.filter(o => p.bsiL[o] != null && f !== 'all').map(o => `${ORG_NAME[o]} BSI day ${fmtDay(p.bsiL[o])}`);
       pl.add(new Option(`${p.pid} · ${p.n} samples${tags.length ? ' · ' + tags.join(', ') : ''}`, p.pid));
     }
   };
@@ -197,7 +197,7 @@ function xDomain() {
   const days = S.pat.samples.map(s => s.day);
   const lo = Math.min(...days) - 2;
   let hi = S.caseEnd + 15;
-  if (S.revealed) hi = Math.max(hi, ...S.pat.infections.map(([d]) => d + 3));
+  if (S.revealed) hi = Math.max(hi, ...S.pat.infections.filter(([, , l]) => l).map(([d]) => d + 3));
   const win = S.win === 'all' ? Infinity : +S.win;
   if (hi - lo <= win) return [lo, hi];
   // window follows the current sample: today sits ~15 days from the right edge (the 14-day forecast window)
@@ -212,14 +212,15 @@ function renderTimeline() {
   const W = Math.max(520, host.clientWidth || 900);
   const p = S.pat, cur = S.replay[S.cursor], cd = cur.day;
   const vis = (d) => S.revealed || d <= cd;
-  const drugsUsed = [...new Set(p.drugs.filter(([, a]) => vis(a)).map(([c]) => c))].sort((a, b) => a - b);
+  const [d0, d1] = xDomain();
+  // lanes only for drugs given inside the visible window (and up to today while blinded)
+  const drugsUsed = [...new Set(p.drugs.filter(([, a, b]) => vis(a) && b >= d0 && a <= d1).map(([c]) => c))].sort((a, b) => a - b);
   const laneN = Math.max(1, drugsUsed.length);
   const rows = [
     { key: 'ecoli', h: H.risk }, { key: 'entero', h: H.risk }, { key: 'comp', h: H.comp },
     { key: 'drugs', h: laneN * H.lane + 22 }, { key: 'anc', h: H.anc }, { key: 'temp', h: H.temp }];
   let y = 20; for (const r of rows) { r.y = y; y += r.h + H.gap; }
   const totalH = y + H.axis;
-  const [d0, d1] = xDomain();
   const x = (d) => GUTTER + (d - d0) / (d1 - d0) * (W - GUTTER - PAD_R);
   const pxPerDay = (W - GUTTER - PAD_R) / (d1 - d0);
   const svg = el('svg', { viewBox: `0 0 ${W} ${totalH}`, role: 'img', 'aria-label': 'Patient timeline' });
@@ -314,16 +315,17 @@ function renderTimeline() {
     const r = rows.find(r => r.key === 'drugs');
     el('rect', { x: GUTTER, y: r.y, width: W - GUTTER - PAD_R, height: r.h, class: 'trk-bg' }, svg);
     el('text', { x: 6, y: r.y + 11, class: 'gutter-lbl strong' }, svg).textContent = 'Antibiotics';
-    if (!drugsUsed.length) el('text', { x: GUTTER + 6, y: r.y + 30, class: 'small' }, svg).textContent = 'none recorded so far';
+    if (!drugsUsed.length) el('text', { x: GUTTER + 6, y: r.y + 30, class: 'small' }, svg).textContent = 'none in this window';
     drugsUsed.forEach((c, li) => {
       const yy = r.y + 18 + li * H.lane;
-      el('text', { x: GUTTER - 6, y: yy + 9, 'text-anchor': 'end', class: 'tick' }, svg).textContent = DRUG_SHORT[S.meta.drugs[c].key] || S.meta.drugs[c].name;
+      el('text', { x: GUTTER - 6, y: yy + 9, 'text-anchor': 'end', class: 'tick' }, svg).textContent = S.meta.drugs[c].name;
       for (const [ci, a, b] of p.drugs) {
         if (ci !== c || !vis(a)) continue;
         const bEnd = S.revealed ? b : Math.min(b, cd);
         const rr = el('rect', { x: x(a - 0.4), y: yy + 1, width: Math.max(2, x(bEnd + 0.4) - x(a - 0.4)), height: H.lane - 3, rx: 2,
           fill: cvar('--drug') }, plot);
-        hover(rr, () => `<b>${S.meta.drugs[c].name}</b><br>day ${fmtDay(a)} to ${fmtDay(b <= cd || S.revealed ? b : cd)}${!S.revealed && b > cd ? ' (ongoing)' : ''}`);
+        hover(rr, () => `<b>${S.meta.drugs[c].name}</b><br>day ${fmtDay(a)} to ${fmtDay(b <= cd || S.revealed ? b : cd)}${!S.revealed && b > cd ? ' (ongoing)' : ''}` +
+          `<br><span class="muted">${S.meta.drugs[c].model ? 'model input class: ' + S.meta.drugs[c].cls : 'not a model input'}</span>`);
       }
     });
   }
@@ -400,13 +402,23 @@ function renderTimeline() {
   if (nL) el('text', { x: GUTTER + 4, y: top - 8, class: 'small' }, svg).textContent = `◀ ${nL} earlier sample${nL > 1 ? 's' : ''}`;
   if (nR) el('text', { x: W - PAD_R - 2, y: top - 8, 'text-anchor': 'end', class: 'small' }, svg).textContent = `${nR} later sample${nR > 1 ? 's' : ''} ▶`;
   {
-    for (const [d, a] of p.infections) {
+    for (const [d, a, linked] of p.infections) {
       if (!S.revealed && d > cd) continue;
+      if (!linked) {                       // no stool sample in the 14 days before: faint, unlabeled marker
+        const ln = el('line', { x1: x(d), x2: x(d), y1: top, y2: bot, stroke: cvar('--muted'), 'stroke-width': 1.2,
+          'stroke-dasharray': '2 3', opacity: 0.7 }, plot);
+        const hit = el('rect', { x: x(d) - 4, y: top, width: 8, height: bot - top, fill: 'transparent' }, plot);
+        hover(hit, () => `${a.replace(/_/g, ' ')} BSI, day ${fmtDay(d)}<br><span class="muted">no stool sample in the 14 days before — not linked to the model</span>`);
+        continue;
+      }
       const org = ORGS.find(o => S.meta.orgs[o].agents.includes(a));
       const col = org ? cvar('--' + org) : cvar('--other-bsi');
       el('line', { x1: x(d), x2: x(d), y1: top - 4, y2: bot, stroke: col, 'stroke-width': 2.2 }, plot);
+      const prev = p.infections.find(([d2, a2, l2]) => l2 && a2 === a && d2 < d && d - d2 <= 3);
+      if (prev) continue;                                   // label once per cluster
+      const n = p.infections.filter(([d2, a2, l2]) => l2 && a2 === a && d2 >= d && d2 - d <= 3).length;
       const t = el('text', { x: x(d), y: top - 8, 'text-anchor': 'middle', class: 'small', fill: col, 'font-weight': 700 }, plot);
-      t.textContent = `BSI · ${a.replace(/_/g, ' ')}`;
+      t.textContent = `BSI · ${agentShort(a)}${n > 1 ? ` ×${n}` : ''}`;
       t.style.fill = col;
     }
   }
@@ -414,6 +426,11 @@ function renderTimeline() {
   renderLegend();
 }
 
+const AGENT_SHORT = { Escherichia: 'E. coli', Enterococcus_Faecium: 'E. faecium', Enterococcus_Faecalis: 'E. faecalis',
+  Enterococcus_Faecium_Vancomycin_Resistant: 'VRE (E. faecium)', Enterococcus_Vancomycin_Resistant: 'VRE',
+  Klebsiella_Pneumoniae: 'K. pneumoniae', Klebsiella: 'Klebsiella', Stenotrophomonas_Maltophilia: 'S. maltophilia',
+  Streptococcus_Viridans_Group: 'viridans strep', Streptococcus_Pneumoniae: 'S. pneumoniae' };
+function agentShort(a) { return AGENT_SHORT[a] || a.replace(/_/g, ' '); }
 function lbl(svg, r, title, sub, col) {
   const t = el('text', { x: 6, y: r.y + 14, class: 'gutter-lbl strong' }, svg); t.textContent = title;
   if (col) t.style.fill = col;
@@ -455,7 +472,7 @@ function renderToday() {
   for (const o of ORGS) {
     const pv = cur['p_' + o], prev = prevScored(o);
     const on = pv != null && pv >= S.thr[o];
-    const after = S.bsiFirst[o] != null && cur.day >= S.bsiFirst[o];
+    const after = S.bsiAny[o] != null && cur.day >= S.bsiAny[o];
     const chip = pv == null ? `<span class="chip na">${after ? 'not scored · after BSI' : 'not scored'}</span>` :
       on ? '<span class="chip alert">⚠ ALERT</span>' : '<span class="chip ok">✓ below threshold</span>';
     const delta = (pv != null && prev != null) ?
@@ -513,8 +530,11 @@ function renderOutcome() {
   const p = S.pat;
   let h = `<h3>Outcome</h3>` + (S.autoRevealed ?
     `<div class="catlabel" style="margin:0 0 8px">Revealed automatically: the replay has passed the day of the infection.</div>` : '');
-  if (!p.infections.length) h += `<div>No bloodstream infection recorded.</div>`;
-  else h += `<ul>${p.infections.map(([d, a]) => `<li>BSI on day <b>${fmtDay(d)}</b>: ${a.replace(/_/g, ' ')}</li>`).join('')}</ul>`;
+  const lk = p.infections.filter(([, , l]) => l), un = p.infections.filter(([, , l]) => !l);
+  if (!lk.length) h += `<div>No bloodstream infection within 14 days of a stool sample.</div>`;
+  else h += `<ul>${lk.map(([d, a]) => `<li>BSI on day <b>${fmtDay(d)}</b>: ${a.replace(/_/g, ' ')}</li>`).join('')}</ul>`;
+  if (un.length) h += `<div class="muted" style="font-size:12px;margin-top:4px">Not linked to the stool data (no sample in the 14 days before): ` +
+    un.map(([d, a]) => `${a.replace(/_/g, ' ')} day ${fmtDay(d)}`).join('; ') + `.</div>`;
   h += '<ul>';
   for (const o of ORGS) {
     const sc = p.samples.filter(s => s['p_' + o] != null);
@@ -524,7 +544,7 @@ function renderOutcome() {
     if (b != null) {
       const pre = sc.filter(s => s.day < b && s.day >= b - 14);
       const fa = pre.filter(s => s['p_' + o] >= S.thr[o]);
-      line += !pre.length ? '; no stool sample in the 14 days before this infection'
+      line += !pre.length ? '; no scored stool sample in the 14 days before this infection'
         : fa.length ? `; first alert in the 14 days before infection: day ${fmtDay(fa[0].day)} (<b>${b - fa[0].day} days ahead</b>)`
         : '; <b>missed</b> — no alert in the 14 days before infection';
     }
@@ -661,6 +681,8 @@ function renderAbout() {
     <li>"&lt;" neutrophil values are shown at the reported limit (hollow points), as the model sees them.</li>
     <li>Antibiotic classes come from administration records; route is not shown.</li>
     <li>Temperature is shown for context only; it is not an input to either model.</li>
+    <li>An infection is labelled (and counted in the patient filters) only if a stool sample was taken in the 14 days before it,
+      i.e. within the window the models predict over. Other infections appear only as faint dotted markers.</li>
   </ul>
   <h2>Data</h2>
   <p>De-identified MSK allo-HCT data from the Xavier lab (see Schluter et al., <i>Scientific Data</i> 2020). Patients appear under random codes; days are relative to transplant (HCT = day 0).</p>
