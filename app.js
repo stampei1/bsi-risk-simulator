@@ -113,6 +113,13 @@ function setupUI() {
       loadPatient(v, c ? c.label : null, c ? c.category : null);
     }
   };
+  $('randomBtn').onclick = () => {             // any patient with at least 3 stool samples, opened blinded
+    const pool = S.cohort.patients.filter(p => p.n >= 3);
+    const p = pool[Math.floor(Math.random() * pool.length)];
+    const c = S.cases.find(x => x.pid === p.pid);
+    cs.value = c ? c.pid : ''; $('pidInput').value = '';
+    loadPatient(p.pid, c ? c.label : `Random patient (${p.pid})`, c ? c.category : null);
+  };
   $('sensSelect').onchange = (e) => { S.sens = +e.target.value; computeThresholds(); render(); renderWard(); };
   $('prevBtn').onclick = () => step(-1);
   $('nextBtn').onclick = () => step(1);
