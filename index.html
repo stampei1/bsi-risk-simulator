@@ -6,8 +6,8 @@
 <title>BSI Risk Simulator</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Research prototype: replay stool-microbiome BSI risk forecasts for allo-HCT patients.">
-<meta name="build" content="20261008142819">
-<link rel="stylesheet" href="style.css?v=20261008142819">
+<meta name="build" content="20261008144232">
+<link rel="stylesheet" href="style.css?v=20261008144232">
 </head>
 <body class="viz-root">
 <header id="topbar">
@@ -63,6 +63,12 @@
       <button id="randomBtn" class="ghost" title="Open a random patient from the filtered list (blinded)">Random patient</button>
       <div class="spacer"></div>
       <div class="replay-ctl">
+        <label class="ctl">View
+          <select id="winSelect" title="How many days the timeline shows around the current sample">
+            <option value="30">30 days</option><option value="60">60 days</option>
+            <option value="120">120 days</option><option value="all">Whole stay</option>
+          </select>
+        </label>
         <button id="prevBtn" class="sm" title="Previous sample (← key)">◀ Back</button>
         <button id="nextBtn" class="sm" title="Next sample (→ key)">Next ▶</button>
         <span id="dayLabel" class="daylabel"></span>
@@ -119,6 +125,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20261008142819"></script>
+<script src="app.js?v=20261008144232"></script>
 </body>
 </html>

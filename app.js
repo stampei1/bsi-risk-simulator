@@ -18,7 +18,7 @@ const DRUG_SHORT = { glycopeptide_antibiotics: 'Vancomycin', penicillins: 'Penic
 const S = {
   meta: null, cohort: null, cases: [], thr: {}, sens: 0.9,
   pat: null, label: '', category: null, replay: [], cursor: 0, revealed: false, 
-  bsiFirst: {}, caseEnd: null,
+  bsiFirst: {}, caseEnd: null, win: store('bsi-win') || '60',
 };
 const $ = (id) => document.getElementById(id);
 const cvar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim() ||
@@ -142,6 +142,8 @@ function setupUI() {
     openPid(p.pid, `Random patient (${p.pid})`);
   };
   $('sensSelect').onchange = (e) => { S.sens = +e.target.value; computeThresholds(); render(); renderWard(); };
+  $('winSelect').value = S.win;
+  $('winSelect').onchange = (e) => { S.win = e.target.value; store('bsi-win', S.win); render(); };
   $('prevBtn').onclick = () => step(-1);
   $('nextBtn').onclick = () => step(1);
   $('revealBtn').onclick = toggleReveal;
@@ -193,9 +195,15 @@ function render() {
 
 function xDomain() {
   const days = S.pat.samples.map(s => s.day);
-  const d0 = Math.min(...days) - 2;
-  let d1 = S.caseEnd + 15;
-  if (S.revealed) d1 = Math.max(d1, ...S.pat.infections.map(([d]) => d + 3));
+  const lo = Math.min(...days) - 2;
+  let hi = S.caseEnd + 15;
+  if (S.revealed) hi = Math.max(hi, ...S.pat.infections.map(([d]) => d + 3));
+  const win = S.win === 'all' ? Infinity : +S.win;
+  if (hi - lo <= win) return [lo, hi];
+  // window follows the current sample: today sits ~15 days from the right edge (the 14-day forecast window)
+  const cd = S.replay[S.cursor].day;
+  let d1 = Math.min(hi, cd + 15), d0 = d1 - win;
+  if (d0 < lo) { d0 = lo; d1 = lo + win; }
   return [d0, d1];
 }
 
@@ -223,7 +231,7 @@ function renderTimeline() {
   const tickStep = (d1 - d0) > 120 ? 20 : (d1 - d0) > 60 ? 10 : 7;
   const t0 = Math.ceil(d0 / tickStep) * tickStep;
   const gA = el('g', { class: 'axis' }, svg);
-  for (let t = t0; t <= d1; t += tickStep) {
+  for (let t = t0; t <= d1 + 1e-9; t += tickStep) {
     el('line', { x1: x(t), x2: x(t), y1: 4, y2: totalH - H.axis, class: 'gridline' }, gA);
     el('text', { x: x(t), y: totalH - 6, 'text-anchor': 'middle', class: 'tick' }, gA).textContent = fmtDay(t);
   }
@@ -246,7 +254,7 @@ function renderTimeline() {
       el('text', { x: GUTTER - 6, y: ly(v) + 3, 'text-anchor': 'end', class: 'tick' }, svg).textContent = pct(v, v < 0.01 ? 1 : 0);
     }
     // forecast window for current sample
-    el('rect', { x: x(cd), y: r.y, width: Math.max(0, x(Math.min(cd + 14, d1)) - x(cd)), height: r.h, class: 'window' }, svg);
+    el('rect', { x: x(cd), y: r.y, width: Math.max(0, x(Math.min(cd + 14, d1)) - x(cd)), height: r.h, class: 'window' }, plot);
     el('line', { x1: GUTTER, x2: W - PAD_R, y1: ly(S.thr[o]), y2: ly(S.thr[o]), class: 'thr-line' }, svg);
     el('text', { x: GUTTER + 4, y: ly(S.thr[o]) - 4, class: 'small' }, svg).textContent = `alert threshold ${pct(S.thr[o], 2)}`;
     const pts = p.samples.filter(s => s['p_' + o] != null && vis(s.day));
@@ -260,15 +268,15 @@ function renderTimeline() {
       const last = pts[pts.length - 1];
       const endX = S.revealed ? x(Math.min(last.day + 3, d1)) : x(Math.max(last.day, Math.min(cd, d1)));
       dpath += `H${endX}`;
-      el('path', { d: dpath, fill: 'none', stroke: col, 'stroke-width': 2 }, svg);
+      el('path', { d: dpath, fill: 'none', stroke: col, 'stroke-width': 2 }, plot);
       for (const s of pts) {
         const pv = s['p_' + o], on = pv >= S.thr[o];
         const c = el('circle', { cx: x(s.day), cy: ly(pv), r: on ? 5 : 4, fill: on ? col : cvar('--panel'),
-          stroke: on ? cvar('--panel') : col, 'stroke-width': 2 }, svg);
+          stroke: on ? cvar('--panel') : col, 'stroke-width': 2 }, plot);
         hover(c, () => `<b>${ORG_NAME[o]}</b> · day ${fmtDay(s.day)}<br>risk of BSI in 14 d: <b>${pct(pv, 2)}</b>` +
           (on ? '<br>⚠ above alert threshold' : '<br>below alert threshold') +
           `<br><span class="muted">abundance: ${pct(s['ab_' + o], 1)} (${S.meta.orgs[o].abundance})</span>`);
-        if (s.day === cd) el('circle', { cx: x(s.day), cy: ly(pv), r: 9, fill: 'none', stroke: col, 'stroke-width': 1.2, opacity: .6 }, svg);
+        if (s.day === cd) el('circle', { cx: x(s.day), cy: ly(pv), r: 9, fill: 'none', stroke: col, 'stroke-width': 1.2, opacity: .6 }, plot);
       }
     }
   }
@@ -282,16 +290,21 @@ function renderTimeline() {
     for (const s of p.samples) {
       if (!vis(s.day) || !s.comp) continue;
       let yy = r.y + r.h;
-      const g = el('g', {}, svg);
+      const g = el('g', {}, plot);
       s.comp.forEach((v, gi) => {
         if (v <= 0) return;
         const hh = v * r.h; yy -= hh;
         el('rect', { x: x(s.day) - bw / 2, y: yy, width: bw, height: Math.max(0.5, hh), fill: S.meta.genera[gi].color }, g);
       });
       hover(g, () => {
-        const top = s.comp.map((v, i) => [v, i]).filter(([v]) => v > 0.01).sort((a, b) => b[0] - a[0]).slice(0, 6);
-        return `<b>Stool sample</b> · day ${fmtDay(s.day)}<br>` + top.map(([v, i]) =>
-          `<span class="sw" style="background:${S.meta.genera[i].color}"></span>${S.meta.genera[i].name} ${pct(v, 0)}`).join('<br>');
+        // the two pathogens are always listed, with exact values even when tiny or zero
+        const G = S.meta.genera, pin = ['Escherichia-Shigella', 'Enterococcus'].map(n => G.findIndex(g => g.name === n));
+        const fine = (v) => v === 0 ? '0%' : v < 0.0001 ? '<0.01%' : (v * 100).toFixed(v < 0.01 ? 2 : 1) + '%';
+        const row = ([v, i]) => `<span class="sw" style="background:${G[i].color}"></span>${G[i].name} ${fine(v)}`;
+        const top = s.comp.map((v, i) => [v, i]).filter(([v, i]) => v > 0.01 && !pin.includes(i)).sort((a, b) => b[0] - a[0]).slice(0, 6);
+        return `<b>Stool sample</b> · day ${fmtDay(s.day)}<br>` + pin.map(i => row([s.comp[i], i])).join('<br>') +
+          `<br><span class="muted">model inputs: E. coli ASV_3+ASV_37 ${fine(s.ab_ecoli ?? 0)} · Enterococcus ASV_2 ${fine(s.ab_entero ?? 0)}</span>` +
+          (top.length ? '<hr style="border:none;border-top:1px solid var(--grid);margin:4px 0">' + top.map(row).join('<br>') : '');
       });
     }
   }
@@ -376,18 +389,23 @@ function renderTimeline() {
   // ---- future shade, cursor, infections
   const top = rows[0].y, bot = rows[rows.length - 1].y + rows[rows.length - 1].h;
   if (!S.revealed) {
-    el('rect', { x: x(cd) + 6, y: top, width: Math.max(0, W - PAD_R - x(cd) - 6), height: bot - top, class: 'future' }, svg);
+    el('rect', { x: x(cd) + 6, y: top, width: Math.max(0, W - PAD_R - x(cd) - 6), height: bot - top, class: 'future' }, plot);
     el('text', { x: Math.min(x(cd) + 12, W - 150), y: rows[2].y + 16, class: 'small' }, svg).textContent = 'not yet observed →';
   }
-  el('line', { x1: x(cd), x2: x(cd), y1: top - 4, y2: bot + 2, class: 'cursor' }, svg);
-  if (!S.revealed) el('text', { x: x(cd), y: top - 8, 'text-anchor': 'middle', class: 'small' }, svg).textContent = 'today';
+  el('line', { x1: x(cd), x2: x(cd), y1: top - 4, y2: bot + 2, class: 'cursor' }, plot);
+  if (!S.revealed) el('text', { x: x(cd), y: top - 8, 'text-anchor': 'middle', class: 'small' }, plot).textContent = 'today';
+  // samples outside the current window
+  const shown = p.samples.filter(s => vis(s.day));
+  const nL = shown.filter(s => s.day < d0).length, nR = shown.filter(s => s.day > d1).length;
+  if (nL) el('text', { x: GUTTER + 4, y: top - 8, class: 'small' }, svg).textContent = `◀ ${nL} earlier sample${nL > 1 ? 's' : ''}`;
+  if (nR) el('text', { x: W - PAD_R - 2, y: top - 8, 'text-anchor': 'end', class: 'small' }, svg).textContent = `${nR} later sample${nR > 1 ? 's' : ''} ▶`;
   {
     for (const [d, a] of p.infections) {
       if (!S.revealed && d > cd) continue;
       const org = ORGS.find(o => S.meta.orgs[o].agents.includes(a));
       const col = org ? cvar('--' + org) : cvar('--other-bsi');
-      el('line', { x1: x(d), x2: x(d), y1: top - 4, y2: bot, stroke: col, 'stroke-width': 2.2 }, svg);
-      const t = el('text', { x: x(d), y: top - 8, 'text-anchor': 'middle', class: 'small', fill: col, 'font-weight': 700 }, svg);
+      el('line', { x1: x(d), x2: x(d), y1: top - 4, y2: bot, stroke: col, 'stroke-width': 2.2 }, plot);
+      const t = el('text', { x: x(d), y: top - 8, 'text-anchor': 'middle', class: 'small', fill: col, 'font-weight': 700 }, plot);
       t.textContent = `BSI · ${a.replace(/_/g, ' ')}`;
       t.style.fill = col;
     }
