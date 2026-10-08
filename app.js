@@ -545,23 +545,16 @@ function renderOutcome() {
 // ------------------------------------------------------------------ ward view
 function wardStats(o) {
   const s = S.cohort.samples, P = S.cohort.patients, thr = S.thr[o];
-  const p = s[o + '_p'], y = s[o + '_y'], ab = s[o + '_ab'];
+  const p = s[o + '_p'], y = s[o + '_y'];
   const idx = []; for (let i = 0; i < p.length; i++) if (p[i] != null) idx.push(i);
   const n = idx.length, flagged = idx.filter(i => p[i] >= thr);
   const k = flagged.length;
-  // abundance flags the same number of samples (random tie-break → expected values)
-  const abSorted = idx.map(i => ab[i]).sort((a, b) => b - a);
-  const abCut = abSorted[k - 1];
-  const above = idx.filter(i => ab[i] > abCut), tie = idx.filter(i => ab[i] === abCut);
-  const fracTie = (k - above.length) / tie.length;
-  const abFlagW = new Map(); above.forEach(i => abFlagW.set(i, 1)); tie.forEach(i => abFlagW.set(i, fracTie));
   const npos = idx.filter(i => y[i] === 1).length;
   const tp = flagged.filter(i => y[i] === 1).length;
-  let abTp = 0; for (const [i, w] of abFlagW) if (y[i] === 1) abTp += w;
   // patients
   const byPat = new Map();
   for (const i of idx) { const pi = s.pid[i]; if (!byPat.has(pi)) byPat.set(pi, []); byPat.get(pi).push(i); }
-  let alerted = 0, warned = 0, eligible = 0, abWarned = 0; const leads = [];
+  let alerted = 0, warned = 0, eligible = 0; const leads = [];
   for (const [pi, rows] of byPat) {
     if (rows.some(i => p[i] >= thr)) alerted++;
     const b = P[pi].bsi[o];
@@ -571,13 +564,10 @@ function wardStats(o) {
     eligible++;
     const fl = pre.filter(i => p[i] >= thr);
     if (fl.length) { warned++; leads.push(b - Math.min(...fl.map(i => s.day[i]))); }
-    // abundance: probability at least one pre sample flagged
-    let none = 1; for (const i of pre) none *= 1 - (abFlagW.get(i) || 0);
-    abWarned += 1 - none;
   }
   leads.sort((a, b) => a - b);
-  return { n, k, npos, tp, abTp, nPat: byPat.size, alerted, warned, eligible, abWarned,
-    medLead: leads.length ? leads[Math.floor(leads.length / 2)] : null, idx, p, y, ab };
+  return { n, k, npos, tp, nPat: byPat.size, alerted, warned, eligible,
+    medLead: leads.length ? leads[Math.floor(leads.length / 2)] : null, idx, p, y };
 }
 
 function renderWard() {
@@ -590,19 +580,18 @@ function renderWard() {
       ${tile('Samples alerting', pct(w.k / w.n, 0), `${w.k.toLocaleString()} of ${w.n.toLocaleString()} stool samples`)}
       ${tile('Alerts followed by BSI ≤ 14 d', pct(w.tp / w.k, 1), `about 1 in ${Math.round(w.k / w.tp)} alerts`)}
       ${tile('Patients ever alerted', pct(w.alerted / w.nPat, 0), `${w.alerted} of ${w.nPat}`)}
-      ${tile('Pre-infection samples caught', pct(w.tp / w.npos, 0), `${w.tp} of ${w.npos} (abundance: ${pct(w.abTp / w.npos, 0)})`)}
-      ${tile('Infected patients warned', `${w.warned} / ${w.eligible}`, `abundance: ${w.abWarned.toFixed(0)} / ${w.eligible}`)}
+      ${tile('Pre-infection samples caught', pct(w.tp / w.npos, 0), `${w.tp} of ${w.npos} samples taken ≤ 14 d before a BSI`)}
+      ${tile('Infected patients warned', `${w.warned} / ${w.eligible}`, `≥ 1 alert in the 14 d before infection`)}
       ${tile('Median warning time', w.medLead != null ? `${w.medLead} days` : '—', 'first alert → BSI, warned patients')}
       </div></div>`;
-    table += `<tr><td>${ORG_NAME[o]}</td><td>${pct(w.k / w.n, 1)}</td><td>${pct(w.tp / w.npos, 1)}</td><td>${pct(w.abTp / w.npos, 1)}</td>
-      <td>${pct(w.tp / w.k, 2)}</td><td>${pct(w.abTp / w.k, 2)}</td><td>${w.warned} / ${w.eligible}</td><td>${w.abWarned.toFixed(1)} / ${w.eligible}</td></tr>`;
+    table += `<tr><td>${ORG_NAME[o]}</td><td>${pct(S.thr[o], 2)}</td><td>${pct(w.k / w.n, 1)}</td><td>${pct(w.tp / w.npos, 1)}</td>
+      <td>${pct(w.tp / w.k, 2)}</td><td>${pct(w.alerted / w.nPat, 1)}</td><td>${w.warned} / ${w.eligible}</td><td>${w.medLead ?? '—'}</td></tr>`;
   }
   $('wardTiles').innerHTML = tiles;
-  $('wardTable').innerHTML = `<table class="data"><thead><tr><th>Model</th><th>Samples flagged</th><th>Sensitivity: model</th><th>Sensitivity: abundance</th>
-    <th>PPV: model</th><th>PPV: abundance</th><th>Infected patients warned: model</th><th>…abundance</th></tr></thead><tbody>${table}</tbody></table>
+  $('wardTable').innerHTML = `<table class="data"><thead><tr><th>Model</th><th>Alert threshold</th><th>Samples alerting</th><th>Sensitivity (samples)</th>
+    <th>PPV</th><th>Patients ever alerted</th><th>Infected patients warned</th><th>Median warning (days)</th></tr></thead><tbody>${table}</tbody></table>
     <p class="muted" style="font-size:12px">"Infected patients warned" counts patients with at least one stool sample in the 14 days before their first infection
-    with that organism, and at least one alert among those samples. Abundance flags the same number of samples as the model; ties
-    (e.g. the many samples with zero abundance) are split at random, so its values are expectations.</p>`;
+    with that organism, and at least one alert among those samples. Sensitivity and PPV are per stool sample; the outcome is a BSI with that organism within 14 days.</p>`;
   $('wardCharts').innerHTML = '';
   for (const o of ORGS) tradeoffChart(o, stats[o]);
 }
@@ -622,7 +611,7 @@ function curve(score, idx, y) {
 function tradeoffChart(o, w) {
   const box = document.createElement('div'); box.className = 'panel';
   box.innerHTML = `<h4 style="color:var(--${o})">${ORG_NAME[o]}: alerts vs. infections caught</h4>
-    <div class="muted" style="font-size:12px">Each point on a line is one possible threshold. Dot = the selected threshold.</div>`;
+    <div class="muted" style="font-size:12px">Each point on the line is one possible threshold. Dot = the selected threshold.</div>`;
   $('wardCharts').appendChild(box);
   const W = Math.max(320, box.clientWidth - 24), Ht = 260, L = 46, B = 34, T = 10, R = 12;
   const svg = el('svg', { viewBox: `0 0 ${W} ${Ht}`, style: 'width:100%;height:auto;display:block' });
@@ -635,21 +624,14 @@ function tradeoffChart(o, w) {
   el('text', { x: L + (W - L - R) / 2, y: Ht - 4, 'text-anchor': 'middle', class: 'small' }, svg).textContent = 'stool samples that would alert';
   const yl = el('text', { x: 12, y: T + (Ht - T - B) / 2, 'text-anchor': 'middle', class: 'small', transform: `rotate(-90 12 ${T + (Ht - T - B) / 2})` }, svg);
   yl.textContent = 'pre-infection samples caught';
-  const col = cvar('--' + o), gray = cvar('--muted');
-  const cm = curve(w.p, w.idx, w.y), ca = curve(w.ab, w.idx, w.y);
+  const col = cvar('--' + o);
+  const cm = curve(w.p, w.idx, w.y);
   const path = (pts) => pts.map(([a, b], i) => `${i ? 'L' : 'M'}${X(a)},${Y(b)}`).join('');
-  el('path', { d: path(ca), fill: 'none', stroke: gray, 'stroke-width': 2 }, svg);
   el('path', { d: path(cm), fill: 'none', stroke: col, 'stroke-width': 2 }, svg);
   const fx = w.k / w.n;
   el('line', { x1: X(fx), x2: X(fx), y1: T, y2: Ht - B, stroke: cvar('--border'), 'stroke-width': 1 }, svg);
   const dm = el('circle', { cx: X(fx), cy: Y(w.tp / w.npos), r: 5, fill: col, stroke: cvar('--panel'), 'stroke-width': 2 }, svg);
-  const da = el('circle', { cx: X(fx), cy: Y(w.abTp / w.npos), r: 5, fill: gray, stroke: cvar('--panel'), 'stroke-width': 2 }, svg);
   hover(dm, () => `<b>Model</b> at selected threshold<br>${pct(fx, 0)} of samples alert · catches ${pct(w.tp / w.npos, 0)}`);
-  hover(da, () => `<b>Pathogen abundance</b>, same number of alerts<br>${pct(fx, 0)} of samples alert · catches ${pct(w.abTp / w.npos, 0)}`);
-  const lg = document.createElement('div'); lg.className = 'legend'; lg.style.padding = '4px 0 6px';
-  lg.innerHTML = `<span><span class="sw" style="background:${col}"></span>model (14-day)</span>` +
-    `<span><span class="sw" style="background:${gray}"></span>pathogen abundance alone (${S.meta.orgs[o].abundance})</span>`;
-  box.appendChild(lg);
   box.appendChild(svg);
 }
 
@@ -672,8 +654,8 @@ function renderAbout() {
   </ul>
   <h2>Performance in this cohort (14-day outcome, AUC)</h2>
   <ul>
-    <li>E. coli: model 0.897 vs. pathogen abundance alone 0.827.</li>
-    <li>Enterococcus: model 0.816 vs. pathogen abundance alone 0.753.</li>
+    <li>E. coli: 0.897.</li>
+    <li>Enterococcus: 0.816.</li>
   </ul>
   <p class="muted">Pooled out-of-fold AUC, mean over five patient groupings. 176 stool samples preceded an E. coli BSI within 14 days (49 patients) and 266 an Enterococcus BSI (91 patients), out of ~9,500 scored samples from ~1,170 patients.</p>
   <h2>Limits</h2>
