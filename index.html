@@ -46,7 +46,20 @@
         <input id="pidInput" list="pidList" placeholder="e.g. P0001" autocomplete="off">
         <datalist id="pidList"></datalist>
       </label>
-      <button id="randomBtn" class="ghost" title="Open a random patient's timeline (blinded)">Random patient</button>
+      <label class="ctl">Browse patients
+        <select id="pFilter" title="Filter the patient list and the random button">
+          <option value="all">All patients</option>
+          <option value="ecoli">E. coli BSI</option>
+          <option value="entero">Enterococcus BSI</option>
+          <option value="either">E. coli or Enterococcus BSI</option>
+          <option value="both">Both E. coli and Enterococcus BSI</option>
+          <option value="none">No E. coli / Enterococcus BSI</option>
+        </select>
+      </label>
+      <label class="ctl"><span id="pListLbl">Patient</span>
+        <select id="pList"></select>
+      </label>
+      <button id="randomBtn" class="ghost" title="Open a random patient from the filtered list (blinded)">Random patient</button>
       <div class="spacer"></div>
       <div class="replay-ctl">
         <button id="firstBtn" class="ghost sm" title="First sample">⇤ Start</button>

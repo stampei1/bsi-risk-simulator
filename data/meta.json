@@ -2,107 +2,228 @@
  "genera": [
   {
    "name": "Enterococcus",
-   "color": "#0D7E2B"
-  },
-  {
-   "name": "Unclassified",
-   "color": "#d9d9d9"
+   "color": "#0D7E2B",
+   "named": true
   },
   {
    "name": "Blautia",
-   "color": "#BEA89A"
-  },
-  {
-   "name": "Lachnoclostridium",
-   "color": "#BEA89A"
-  },
-  {
-   "name": "[Ruminococcus] gnavus group",
-   "color": "#BEA89A"
-  },
-  {
-   "name": "Clostridium sensu stricto 1",
-   "color": "#BEA89A"
+   "color": "#BEA89A",
+   "named": true
   },
   {
    "name": "Anaerostipes",
-   "color": "#BEA89A"
+   "color": "#BEA89A",
+   "named": true
   },
   {
-   "name": "Sellimonas",
-   "color": "#BEA89A"
+   "name": "Romboutsia",
+   "color": "#BEA89A",
+   "named": true
   },
   {
-   "name": "[Ruminococcus] torques group",
-   "color": "#BEA89A"
+   "name": "Lachnoclostridium",
+   "color": "#BEA89A",
+   "named": true
+  },
+  {
+   "name": "Ruminococcus",
+   "color": "#BEA89A",
+   "named": true
+  },
+  {
+   "name": "[Ruminococcus] gnavus group",
+   "color": "#BEA89A",
+   "named": true
+  },
+  {
+   "name": "Clostridium sensu stricto 1",
+   "color": "#BEA89A",
+   "named": true
+  },
+  {
+   "name": "Other Ruminococcaceae",
+   "color": "#dbcfc7",
+   "named": false
+  },
+  {
+   "name": "Other [Eubacterium] coprostanoligenes group",
+   "color": "#dbcfc7",
+   "named": false
+  },
+  {
+   "name": "Other Oscillospiraceae",
+   "color": "#dbcfc7",
+   "named": false
+  },
+  {
+   "name": "Other Lachnospiraceae",
+   "color": "#dbcfc7",
+   "named": false
+  },
+  {
+   "name": "Other Peptostreptococcaceae",
+   "color": "#dbcfc7",
+   "named": false
   },
   {
    "name": "Akkermansia",
-   "color": "#CA0BE8"
+   "color": "#CA0BE8",
+   "named": true
   },
   {
    "name": "Bacteroides",
-   "color": "#1CF8EC"
+   "color": "#1CF8EC",
+   "named": true
   },
   {
-   "name": "[Clostridium] innocuum group",
-   "color": "#FBA22E"
+   "name": "Other Bacteroidota",
+   "color": "#82fbf5",
+   "named": false
+  },
+  {
+   "name": "Other Tannerellaceae",
+   "color": "#82fbf5",
+   "named": false
+  },
+  {
+   "name": "Other Prevotellaceae",
+   "color": "#82fbf5",
+   "named": false
   },
   {
    "name": "Erysipelatoclostridium",
-   "color": "#FBA22E"
+   "color": "#FBA22E",
+   "named": true
   },
   {
-   "name": "Faecalitalea",
-   "color": "#FBA22E"
+   "name": "[Clostridium] innocuum group",
+   "color": "#FBA22E",
+   "named": true
+  },
+  {
+   "name": "Other Erysipelatoclostridiaceae",
+   "color": "#fdcc8c",
+   "named": false
+  },
+  {
+   "name": "Other Erysipelotrichaceae",
+   "color": "#fdcc8c",
+   "named": false
+  },
+  {
+   "name": "Other Firmicutes",
+   "color": "#dbcfc7",
+   "named": false
   },
   {
    "name": "Streptococcus",
-   "color": "#AFCF3C"
+   "color": "#AFCF3C",
+   "named": true
   },
   {
    "name": "Staphylococcus",
-   "color": "#F4EE26"
-  },
-  {
-   "name": "Lactobacillus",
-   "color": "#5875DE"
+   "color": "#F4EE26",
+   "named": true
   },
   {
    "name": "Pediococcus",
-   "color": "#5875DE"
+   "color": "#5875DE",
+   "named": true
   },
   {
    "name": "Lactococcus",
-   "color": "#5875DE"
+   "color": "#5875DE",
+   "named": true
   },
   {
-   "name": "Bifidobacterium",
-   "color": "#D0D0D0"
+   "name": "Lactobacillus",
+   "color": "#5875DE",
+   "named": true
+  },
+  {
+   "name": "Other Aerococcaceae",
+   "color": "#a3b3ed",
+   "named": false
+  },
+  {
+   "name": "Other Leuconostocaceae",
+   "color": "#a3b3ed",
+   "named": false
+  },
+  {
+   "name": "Other Carnobacteriaceae",
+   "color": "#a3b3ed",
+   "named": false
   },
   {
    "name": "Actinomyces",
-   "color": "#D0D0D0"
+   "color": "#D0D0D0",
+   "named": true
   },
   {
    "name": "Veillonella",
-   "color": "#D0D0D0"
+   "color": "#D0D0D0",
+   "named": true
   },
   {
-   "name": "Escherichia-Shigella",
-   "color": "#EE2C2C"
+   "name": "Bifidobacterium",
+   "color": "#D0D0D0",
+   "named": true
+  },
+  {
+   "name": "Other Acidaminococcaceae",
+   "color": "#e5e5e5",
+   "named": false
+  },
+  {
+   "name": "Other Micrococcaceae",
+   "color": "#e5e5e5",
+   "named": false
+  },
+  {
+   "name": "Other Actinobacteriota",
+   "color": "#e5e5e5",
+   "named": false
+  },
+  {
+   "name": "Other (rare phyla)",
+   "color": "#e5e5e5",
+   "named": false
+  },
+  {
+   "name": "Other Fusobacteriota",
+   "color": "#e5e5e5",
+   "named": false
+  },
+  {
+   "name": "Other Bifidobacteriaceae",
+   "color": "#e5e5e5",
+   "named": false
   },
   {
    "name": "Klebsiella",
-   "color": "#EE2C2C"
+   "color": "#EE2C2C",
+   "named": true
   },
   {
-   "name": "Ruminococcus 2",
-   "color": "#bdbdbd"
+   "name": "Escherichia-Shigella",
+   "color": "#EE2C2C",
+   "named": true
   },
   {
-   "name": "Other",
-   "color": "#ececec"
+   "name": "Other Proteobacteria",
+   "color": "#f68b8b",
+   "named": false
+  },
+  {
+   "name": "Other Enterobacteriaceae",
+   "color": "#f68b8b",
+   "named": false
+  },
+  {
+   "name": "Other Desulfobacterota",
+   "color": "#f68b8b",
+   "named": false
   }
  ],
  "drugs": [

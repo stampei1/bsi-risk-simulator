@@ -113,12 +113,32 @@ function setupUI() {
       loadPatient(v, c ? c.label : null, c ? c.category : null);
     }
   };
-  $('randomBtn').onclick = () => {             // any patient with at least 3 stool samples, opened blinded
-    const pool = S.cohort.patients.filter(p => p.n >= 3);
-    const p = pool[Math.floor(Math.random() * pool.length)];
-    const c = S.cases.find(x => x.pid === p.pid);
+  const openPid = (pid, label) => {
+    const c = S.cases.find(x => x.pid === pid);
     cs.value = c ? c.pid : ''; $('pidInput').value = '';
-    loadPatient(p.pid, c ? c.label : `Random patient (${p.pid})`, c ? c.category : null);
+    loadPatient(pid, c ? c.label : (label || `Patient ${pid}`), c ? c.category : null);
+  };
+  const FILTERS = {
+    all: () => true, ecoli: (p) => p.bsi.ecoli != null, entero: (p) => p.bsi.entero != null,
+    either: (p) => p.bsi.ecoli != null || p.bsi.entero != null, both: (p) => p.bsi.ecoli != null && p.bsi.entero != null,
+    none: (p) => p.bsi.ecoli == null && p.bsi.entero == null };
+  const filtered = () => S.cohort.patients.filter(FILTERS[$('pFilter').value]);
+  const fillList = () => {
+    const f = $('pFilter').value, pl = $('pList'), ps = filtered();
+    pl.replaceChildren(new Option(`— choose (${ps.length}) —`, ''));
+    for (const p of ps) {
+      const tags = ORGS.filter(o => p.bsi[o] != null && f !== 'all').map(o => `${ORG_NAME[o]} BSI day ${fmtDay(p.bsi[o])}`);
+      pl.add(new Option(`${p.pid} · ${p.n} samples${tags.length ? ' · ' + tags.join(', ') : ''}`, p.pid));
+    }
+  };
+  $('pFilter').onchange = fillList;
+  $('pList').onchange = (e) => { if (e.target.value) openPid(e.target.value); };
+  fillList();
+  $('randomBtn').onclick = () => {             // random patient (≥ 3 stool samples) from the filtered list, blinded
+    const ps = filtered(), big = ps.filter(p => p.n >= 3), pool = big.length ? big : ps;
+    const p = pool[Math.floor(Math.random() * pool.length)];
+    $('pList').value = p.pid;
+    openPid(p.pid, `Random patient (${p.pid})`);
   };
   $('sensSelect').onchange = (e) => { S.sens = +e.target.value; computeThresholds(); render(); renderWard(); };
   $('prevBtn').onclick = () => step(-1);
@@ -320,11 +340,18 @@ function renderTimeline() {
     }
     const pts = p.anc.filter(([d]) => vis(d));
     if (pts.length) {
-      el('path', { d: pts.map(([d, v], i) => `${i ? 'L' : 'M'}${x(d)},${ly(v)}`).join(''), fill: 'none',
-        stroke: cvar('--text-2'), 'stroke-width': 1.5 }, plot);
+      // some days carry 2-3 conflicting readings: the line follows each day's highest; every reading is a dot
+      const byDay = new Map();
+      for (const pt of pts) { if (!byDay.has(pt[0])) byDay.set(pt[0], []); byDay.get(pt[0]).push(pt); }
+      const days = [...byDay.keys()].sort((a, b) => a - b);
+      el('path', { d: days.map((d, i) => `${i ? 'L' : 'M'}${x(d)},${ly(Math.max(...byDay.get(d).map(q => q[1])))}`).join(''),
+        fill: 'none', stroke: cvar('--text-2'), 'stroke-width': 1.5 }, plot);
       for (const [d, v, c] of pts) {
-        const ci = el('circle', { cx: x(d), cy: ly(v), r: 2.6, fill: c ? cvar('--panel') : cvar('--text-2'), stroke: cvar('--text-2'), 'stroke-width': 1 }, plot);
-        hover(ci, () => `<b>ANC</b> · day ${fmtDay(d)}: ${c ? '&lt;' : ''}${v} ×10³/µL`);
+        const same = byDay.get(d), top = v === Math.max(...same.map(q => q[1]));
+        const ci = el('circle', { cx: x(d), cy: ly(v), r: top ? 2.6 : 2, fill: c ? cvar('--panel') : cvar('--text-2'),
+          stroke: cvar('--text-2'), 'stroke-width': 1, opacity: top ? 1 : 0.45 }, plot);
+        hover(ci, () => `<b>ANC</b> · day ${fmtDay(d)}: ` + same.map(([, vv, cc]) => `${cc ? '&lt;' : ''}${vv}`).join(' / ') +
+          ' ×10³/µL' + (same.length > 1 ? '<br><span class="muted">several readings that day; line shows the highest</span>' : ''));
       }
     }
   }
@@ -387,8 +414,9 @@ function lbl(svg, r, title, sub, col) {
 
 function renderLegend() {
   const shown = S.meta.genera.map((g, i) => [g, i]).filter(([, i]) =>
-    S.pat.samples.some(s => s.comp && s.comp[i] > 0.05 && (S.revealed || s.day <= S.replay[S.cursor].day)));
-  $('compLegend').innerHTML = shown.map(([g]) => `<span><span class="sw" style="background:${g.color}"></span>${g.name}</span>`).join('');
+    S.pat.samples.some(s => s.comp && s.comp[i] > 0.03 && (S.revealed || s.day <= S.replay[S.cursor].day)));
+  $('compLegend').innerHTML = shown.map(([g]) => `<span><span class="sw" style="background:${g.color}"></span>${g.name}</span>`).join('') +
+    `<span class="muted">· abundant genera named; the rest grouped by family, order or phylum (paler shade); hover a bar for detail</span>`;
 }
 
 // ------------------------------------------------------------------ tooltip
